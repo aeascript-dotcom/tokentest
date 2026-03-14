@@ -1,0 +1,10 @@
+{
+  "name": "rebotlangans-demo",
+  "version": "1.0.0",
+  "description": "ReBotLangAns — See How Much Your AI Is Wasting",
+  "scripts": {
+    "dev": "npx serve public",
+    "build": "echo 'Static site — no build needed'"
+  },
+  "private": true
+}

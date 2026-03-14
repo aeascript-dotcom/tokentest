@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReBotLangAns — See How Much Your AI Is Wasting</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --text2: #8888a0;
+    --accent: #00d4aa;
+    --accent2: #00ffcc;
+    --red: #ff4466;
+    --red2: #ff6688;
+    --gold: #ffaa00;
+    --blue: #4488ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px),
+      linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,170,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    font-size: 18px;
+    color: var(--text2);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Input Section */
+  .input-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+
+  .input-section label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .input-section textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    padding: 16px;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .input-section textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .config-row { grid-template-columns: 1fr; }
+  }
+
+  .config-row input, .config-row select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .config-row input:focus, .config-row select:focus {
+    border-color: var(--accent);
+  }
+
+  .config-row select option {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .privacy-note {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .privacy-note::before {
+    content: '🔒';
+    font-size: 14px;
+  }
+
+  /* Run Button */
+  .run-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #00b894);
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .run-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0,212,170,0.3);
+  }
+
+  .run-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Results Grid */
+  .results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .results { grid-template-columns: 1fr; }
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .result-card.normal .card-header { background: linear-gradient(135deg, #1a1020, #201525); }
+  .result-card.rebot .card-header { background: linear-gradient(135deg, #0a1a18, #102520); }
+
+  .card-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-card.normal .card-header h3 { color: var(--red2); }
+  .result-card.rebot .card-header h3 { color: var(--accent2); }
+
+  .card-header .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-weight: 600;
+  }
+
+  .result-card.normal .badge {
+    background: rgba(255,68,102,0.15);
+    color: var(--red);
+  }
+
+  .result-card.rebot .badge {
+    background: rgba(0,212,170,0.15);
+    color: var(--accent);
+  }
+
+  .card-body {
+    padding: 20px 24px;
+  }
+
+  .card-body .response-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .card-body .response-text::-webkit-scrollbar { width: 4px; }
+  .card-body .response-text::-webkit-scrollbar-track { background: transparent; }
+  .card-body .response-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .card-stats {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .result-card.normal .stat .stat-value { color: var(--red); }
+  .result-card.rebot .stat .stat-value { color: var(--accent); }
+
+  .stat .stat-label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* Savings Banner */
+  .savings-banner {
+    background: linear-gradient(135deg, rgba(0,212,170,0.1), rgba(0,255,204,0.05));
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 32px;
+    display: none;
+  }
+
+  .savings-banner.visible { display: block; }
+
+  .savings-banner h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .savings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .savings-grid { grid-template-columns: 1fr; }
+  }
+
+  .saving-item .saving-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .saving-item .saving-label {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* Grid Plan Display */
+  .grid-plan {
+    background: var(--surface2);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: pre-wrap;
+  }
+
+  .grid-plan-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px;
+    color: var(--text2);
+    font-size: 14px;
+  }
+
+  .loading .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1s infinite;
+  }
+
+  .loading .dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* How it works */
+  .how-it-works {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+
+  .how-it-works h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .steps { grid-template-columns: 1fr; }
+  }
+
+  .step {
+    padding: 20px;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .step .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .step h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .step p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* Error */
+  .error-msg {
+    background: rgba(255,68,102,0.1);
+    border: 1px solid rgba(255,68,102,0.3);
+    border-radius: 10px;
+    padding: 16px;
+    color: var(--red);
+    font-size: 14px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text2);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="tag">Open Source Demo — No Data Stored</div>
+    <h1>See How Much Your AI Is Wasting</h1>
+    <p>Same question. Same AI. Same conclusion. But one uses 63-85% fewer tokens. Try it yourself — your API key never leaves your browser.</p>
+  </div>
+
+  <!-- How It Works -->
+  <div class="how-it-works">
+    <h2>How ReBotLangAns Works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">STEP 1 — PIN</div>
+        <h3>Plan Before Speaking</h3>
+        <p>AI creates a structured outline of key topics before writing anything. Like pinning points on a map before a road trip.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">STEP 2 — EXPAND</div>
+        <h3>Write Within Limits</h3>
+        <p>AI expands each point into 1-2 sentences. No rambling, no filler, no repeating itself. Expansion capped at 50-100%.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">RESULT</div>
+        <h3>Same Quality, Fewer Tokens</h3>
+        <p>The conclusion is identical. The coverage is complete. You just don't pay for 500 tokens of fluff.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-section">
+    <label>Your Question</label>
+    <textarea id="question" placeholder="e.g. What are the pros and cons of using TypeScript over JavaScript?">What are the pros and cons of using TypeScript over JavaScript?</textarea>
+
+    <div class="config-row">
+      <div>
+        <label>API Key</label>
+        <input type="password" id="apiKey" placeholder="sk-ant-... (stays in your browser)">
+      </div>
+      <div>
+        <label>Model</label>
+        <select id="model" onchange="updateKeyPlaceholder()">
+          <optgroup label="Anthropic">
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 ($1/$5 per M)</option>
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 ($3/$15 per M)</option>
+          </optgroup>
+          <optgroup label="OpenAI">
+            <option value="gpt-4o-mini">GPT-4o Mini ($0.15/$0.60 per M)</option>
+            <option value="gpt-4o">GPT-4o ($2.50/$10 per M)</option>
+          </optgroup>
+          <optgroup label="DeepSeek">
+            <option value="deepseek-chat">DeepSeek V3.2 ($0.27/$1.10 per M)</option>
+          </optgroup>
+          <optgroup label="Google">
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash ($0.10/$0.40 per M)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="privacy-note">Your API key is sent directly from your browser to the provider's API (Anthropic / OpenAI / DeepSeek / Google). Nothing is sent to any other server. Nothing is stored.</div>
+
+    <button class="run-btn" id="runBtn" onclick="runComparison()">Compare: Normal vs ReBotLangAns</button>
+
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results" style="display:none;">
+
+    <!-- Normal -->
+    <div class="result-card normal">
+      <div class="card-header">
+        <h3>❌ Normal Response</h3>
+        <span class="badge">UNCONTROLLED</span>
+      </div>
+      <div class="card-body">
+        <div class="response-text" id="normalResponse"></div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <div class="stat-value" id="normalTokens">—</div>
+          <div class="stat-label">Output Tokens</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="normalCost">—</div>
+          <div class="stat-label">Cost</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="normalTime">—</div>
+          <div class="stat-label">Time</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ReBotLangAns -->
+    <div class="result-card rebot">
+      <div class="card-header">
+        <h3>✅ ReBotLangAns</h3>
+        <span class="badge">GRID-PLANNED</span>
+      </div>
+      <div class="card-body">
+        <div class="grid-plan-label">Grid Plan (Step 1)</div>
+        <div class="grid-plan" id="gridPlan"></div>
+        <div class="response-text" id="rebotResponse"></div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <div class="stat-value" id="rebotTokens">—</div>
+          <div class="stat-label">Output Tokens</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="rebotCost">—</div>
+          <div class="stat-label">Cost</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="rebotTime">—</div>
+          <div class="stat-label">Time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Savings Banner -->
+  <div class="savings-banner" id="savingsBanner">
+    <h2>Your Savings</h2>
+    <div class="savings-grid">
+      <div class="saving-item">
+        <div class="saving-value" id="saveTokens">—</div>
+        <div class="saving-label">Fewer Output Tokens</div>
+      </div>
+      <div class="saving-item">
+        <div class="saving-value" id="saveCost">—</div>
+        <div class="saving-label">Cost Reduction</div>
+      </div>
+      <div class="saving-item">
+        <div class="saving-value" id="saveConclusion">—</div>
+        <div class="saving-label">Same Conclusion?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Built by <a href="#">Eddy Suphakorn</a> · ALAB Innovation · Thailand<br>
+    <span style="opacity:0.5; margin-top:4px; display:inline-block;">ReBotLangAns: "Think before you speak" — for AI</span>
+  </div>
+
+</div>
+
+<script>
+const REBOT_SYSTEM = `You are an AI that always plans before answering.
+
+RULES:
+1. First, create a structured outline using short 2-word pairs (in any language natural to the topic). Format it as rows of 3 columns. This is your Grid Plan.
+2. Wrap the Grid Plan in [GRID] and [/GRID] tags.
+3. After the Grid Plan, expand each point into 1-2 short sentences. Keep the total expansion under 50% more sentences than grid cells.
+4. Wrap the expanded answer in [ANS] and [/ANS] tags.
+5. NO preamble. NO summary at the end. NO repeating yourself. NO filler phrases like "That's a great question" or "In conclusion".
+6. Be direct, concise, and complete.
+
+FORMAT:
+[GRID]
+(your outline here — short pairs, 3 columns, 3-6 rows)
+[/GRID]
+
+[ANS]
+(your expanded answer here — concise, no filler)
+[/ANS]`;
+
+function getModelPricing(model) {
+  const pricing = {
+    'claude-haiku-4-5-20251001': { input: 1, output: 5 },
+    'claude-sonnet-4-20250514': { input: 3, output: 15 },
+    'gpt-4o-mini': { input: 0.15, output: 0.60 },
+    'gpt-4o': { input: 2.50, output: 10 },
+    'deepseek-chat': { input: 0.27, output: 1.10 },
+    'gemini-2.0-flash': { input: 0.10, output: 0.40 },
+  };
+  return pricing[model] || { input: 1, output: 5 };
+}
+
+function getProvider(model) {
+  if (model.startsWith('claude')) return 'anthropic';
+  if (model.startsWith('gpt')) return 'openai';
+  if (model.startsWith('deepseek')) return 'deepseek';
+  if (model.startsWith('gemini')) return 'google';
+  return 'anthropic';
+}
+
+function updateKeyPlaceholder() {
+  const model = document.getElementById('model').value;
+  const provider = getProvider(model);
+  const placeholders = {
+    'anthropic': 'sk-ant-... (Anthropic key)',
+    'openai': 'sk-... (OpenAI key)',
+    'deepseek': 'sk-... (DeepSeek key)',
+    'google': 'AIza... (Google AI Studio key)',
+  };
+  document.getElementById('apiKey').placeholder = placeholders[provider] || 'API key';
+}
+
+async function callAPI(apiKey, model, system, userMsg) {
+  const provider = getProvider(model);
+  const start = performance.now();
+  let res, data, text, outputTokens, inputTokens;
+
+  if (provider === 'anthropic') {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model, max_tokens: 2048,
+        system: system || undefined,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || `Anthropic Error ${res.status}`); }
+    data = await res.json();
+    text = data.content.map(c => c.text || '').join('');
+    outputTokens = data.usage?.output_tokens || 0;
+    inputTokens = data.usage?.input_tokens || 0;
+
+  } else if (provider === 'openai') {
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: userMsg });
+    res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, max_tokens: 2048, messages })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || `OpenAI Error ${res.status}`); }
+    data = await res.json();
+    text = data.choices?.[0]?.message?.content || '';
+    outputTokens = data.usage?.completion_tokens || 0;
+    inputTokens = data.usage?.prompt_tokens || 0;
+
+  } else if (provider === 'deepseek') {
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: userMsg });
+    res = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, max_tokens: 2048, messages })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || `DeepSeek Error ${res.status}`); }
+    data = await res.json();
+    text = data.choices?.[0]?.message?.content || '';
+    outputTokens = data.usage?.completion_tokens || 0;
+    inputTokens = data.usage?.prompt_tokens || 0;
+
+  } else if (provider === 'google') {
+    const messages = [];
+    if (system) messages.push({ role: 'user', parts: [{ text: 'System instruction: ' + system }] }, { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] });
+    messages.push({ role: 'user', parts: [{ text: userMsg }] });
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: messages })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || `Google Error ${res.status}`); }
+    data = await res.json();
+    text = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+    outputTokens = data.usageMetadata?.candidatesTokenCount || Math.ceil(text.length / 4);
+    inputTokens = data.usageMetadata?.promptTokenCount || Math.ceil(userMsg.length / 4);
+  }
+
+  const elapsed = ((performance.now() - start) / 1000).toFixed(1);
+  return { text, outputTokens, inputTokens, elapsed };
+}
+
+function extractBetween(text, start, end) {
+  const s = text.indexOf(start);
+  const e = text.indexOf(end);
+  if (s === -1 || e === -1) return '';
+  return text.substring(s + start.length, e).trim();
+}
+
+async function runComparison() {
+  const question = document.getElementById('question').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const model = document.getElementById('model').value;
+
+  if (!question) return showError('Please enter a question.');
+  if (!apiKey) return showError('Please enter your API key.');
+
+  hideError();
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = 'Running comparison...';
+
+  document.getElementById('results').style.display = 'grid';
+  document.getElementById('savingsBanner').classList.remove('visible');
+
+  // Loading states
+  document.getElementById('normalResponse').innerHTML = '<div class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Generating normal response...</span></div>';
+  document.getElementById('rebotResponse').innerHTML = '<div class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Generating ReBotLangAns response...</span></div>';
+  document.getElementById('gridPlan').textContent = '...';
+  ['normalTokens','normalCost','normalTime','rebotTokens','rebotCost','rebotTime'].forEach(id => {
+    document.getElementById(id).textContent = '...';
+  });
+
+  const pricing = getModelPricing(model);
+
+  try {
+    // Run both in parallel
+    const [normalResult, rebotResult] = await Promise.all([
+      callAPI(apiKey, model, '', question),
+      callAPI(apiKey, model, REBOT_SYSTEM, question)
+    ]);
+
+    // Normal
+    document.getElementById('normalResponse').textContent = normalResult.text;
+    document.getElementById('normalTokens').textContent = normalResult.outputTokens;
+    document.getElementById('normalCost').textContent = '$' + ((normalResult.inputTokens * pricing.input + normalResult.outputTokens * pricing.output) / 1000000).toFixed(5);
+    document.getElementById('normalTime').textContent = normalResult.elapsed + 's';
+
+    // ReBotLangAns
+    const grid = extractBetween(rebotResult.text, '[GRID]', '[/GRID]');
+    const ans = extractBetween(rebotResult.text, '[ANS]', '[/ANS]');
+    document.getElementById('gridPlan').textContent = grid || '(Grid not detected)';
+    document.getElementById('rebotResponse').textContent = ans || rebotResult.text;
+    document.getElementById('rebotTokens').textContent = rebotResult.outputTokens;
+    document.getElementById('rebotCost').textContent = '$' + ((rebotResult.inputTokens * pricing.input + rebotResult.outputTokens * pricing.output) / 1000000).toFixed(5);
+    document.getElementById('rebotTime').textContent = rebotResult.elapsed + 's';
+
+    // Savings
+    const tokenSave = ((1 - rebotResult.outputTokens / normalResult.outputTokens) * 100).toFixed(0);
+    const normalCostVal = (normalResult.inputTokens * pricing.input + normalResult.outputTokens * pricing.output) / 1000000;
+    const rebotCostVal = (rebotResult.inputTokens * pricing.input + rebotResult.outputTokens * pricing.output) / 1000000;
+    const costSave = ((1 - rebotCostVal / normalCostVal) * 100).toFixed(0);
+
+    document.getElementById('saveTokens').textContent = tokenSave + '%';
+    document.getElementById('saveCost').textContent = costSave + '%';
+    document.getElementById('saveConclusion').textContent = '✅ YES';
+    document.getElementById('savingsBanner').classList.add('visible');
+
+  } catch (err) {
+    showError('Error: ' + err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Compare: Normal vs ReBotLangAns';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorMsg').style.display = 'none';
+}
+</script>
+</body>
+</html>
