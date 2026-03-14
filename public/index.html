@@ -517,7 +517,7 @@
   <!-- Input -->
   <div class="input-section">
     <label>Your Question</label>
-    <textarea id="question" placeholder="e.g. What are the pros and cons of using TypeScript over JavaScript?">What are the pros and cons of using TypeScript over JavaScript?</textarea>
+    <textarea id="question" placeholder="เช่น ข้อดีและข้อเสียของการใช้ TypeScript แทน JavaScript คืออะไร?">ข้อดีและข้อเสียของการใช้ TypeScript แทน JavaScript คืออะไร?</textarea>
 
     <div class="config-row">
       <div>
@@ -587,8 +587,8 @@
         <span class="badge">GRID-PLANNED</span>
       </div>
       <div class="card-body">
-        <div class="grid-plan-label">Grid Plan (Step 1)</div>
-        <div class="grid-plan" id="gridPlan"></div>
+        <div class="grid-plan-label" style="display:none;">Grid Plan (Step 1)</div>
+        <div class="grid-plan" id="gridPlan" style="display:none;"></div>
         <div class="response-text" id="rebotResponse"></div>
       </div>
       <div class="card-stats">
@@ -636,15 +636,15 @@
 </div>
 
 <script>
-const REBOT_SYSTEM = `You are an AI that always plans before answering.
+const REBOT_SYSTEM = `You are an AI that always plans before answering. Always respond in Thai language.
 
 RULES:
-1. First, create a structured outline using short 2-word pairs (in any language natural to the topic). Format it as rows of 3 columns. This is your Grid Plan.
+1. First, create a structured outline using short 2-word pairs in Thai. Format it as rows of 3 columns. This is your Grid Plan.
 2. Wrap the Grid Plan in [GRID] and [/GRID] tags.
-3. After the Grid Plan, expand EVERY cell in the Grid into 1-2 short sentences — do not skip any cell. Do not repeat the same point twice. Keep the total expansion under 50% more sentences than grid cells.
+3. After the Grid Plan, expand EVERY cell in the Grid into 1-2 short sentences in Thai — do not skip any cell. Do not repeat the same point twice. Keep the total expansion under 50% more sentences than grid cells.
 4. Wrap the expanded answer in [ANS] and [/ANS] tags.
-5. NO preamble. NO summary at the end. NO repeating yourself. NO filler phrases like "That's a great question" or "In conclusion".
-6. Be direct, concise, and complete.
+5. NO preamble. NO summary at the end. NO repeating yourself. NO filler phrases.
+6. Be direct, concise, and complete. Write entirely in Thai.
 
 FORMAT:
 [GRID]
