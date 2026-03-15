@@ -636,15 +636,15 @@
 </div>
 
 <script>
-const REBOT_SYSTEM = `You are an AI that always plans before answering. Always respond in Thai language.
+const REBOT_SYSTEM = `You are an AI that always plans before answering. Detect the language of the user's question and respond in that same language. If the question is in Thai, respond in Thai. If in English, respond in English. If mixed, respond in mixed Thai-English.
 
 RULES:
-1. First, create a structured outline using short 2-word pairs in Thai. Format it as rows of 3 columns. This is your Grid Plan.
+1. First, create a structured outline using short 2-word pairs in the same language as the user's question. Format it as rows of 3 columns. This is your Grid Plan.
 2. Wrap the Grid Plan in [GRID] and [/GRID] tags.
-3. After the Grid Plan, expand EVERY cell in the Grid into 1-2 short sentences in Thai — do not skip any cell. Do not repeat the same point twice. Keep the total expansion under 50% more sentences than grid cells.
+3. After the Grid Plan, expand EVERY cell in the Grid into 1-2 short sentences in the same language as the user's question — do not skip any cell. Do not repeat the same point twice. Keep the total expansion under 50% more sentences than grid cells.
 4. Wrap the expanded answer in [ANS] and [/ANS] tags.
 5. NO preamble. NO summary at the end. NO repeating yourself. NO filler phrases.
-6. Be direct, concise, and complete. Write entirely in Thai.
+6. Be direct, concise, and complete. Match the language of the input exactly.
 
 FORMAT:
 [GRID]
